@@ -7,9 +7,9 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
-# 実行中・停止中のインスタンス一覧を取得
+# インスタンス一覧を取得
 instances=$(aws ec2 describe-instances \
-    --filters "Name=instance-state-name,Values=running,stopped" \
+    --filters "Name=instance-state-name,Values=running,stopped,pending,stopping" \
     --query 'Reservations[].Instances[].{InstanceId:InstanceId,Name:Tags[?Key==`Name`].Value|[0],InstanceType:InstanceType,PublicIpAddress:PublicIpAddress,State:State.Name}' \
     --output json)
 
@@ -21,7 +21,7 @@ if [ "$instance_count" -eq 0 ]; then
 fi
 
 # インスタンス一覧を表示
-echo "Select an instance:"
+echo "EC2 Instances:"
 echo ""
 for i in $(seq 0 $((instance_count - 1))); do
     instance_id=$(echo "$instances" | jq -r ".[$i].InstanceId")
@@ -29,12 +29,20 @@ for i in $(seq 0 $((instance_count - 1))); do
     instance_type=$(echo "$instances" | jq -r ".[$i].InstanceType")
     public_ip=$(echo "$instances" | jq -r ".[$i].PublicIpAddress // \"(no public ip)\"")
     state=$(echo "$instances" | jq -r ".[$i].State")
-    echo "  $((i + 1)). $name ($instance_id, type: $instance_type, ip: $public_ip, state: $state)"
+    echo "  $((i + 1)). $name"
+    echo "     ID: $instance_id"
+    echo "     Type: $instance_type"
+    echo "     IP: $public_ip"
+    echo "     State: $state"
+    echo ""
 done
-echo ""
 
 # インスタンス選択
-read -p "Enter number (1-$instance_count): " selection
+read -p "Enter number to manage (1-$instance_count), or press Enter to exit: " selection
+
+if [ -z "$selection" ]; then
+    exit 0
+fi
 
 # 入力検証
 if ! [[ "$selection" =~ ^[0-9]+$ ]] || [ "$selection" -lt 1 ] || [ "$selection" -gt "$instance_count" ]; then
