@@ -62,4 +62,4 @@ echo "$result" | jq -r '
     .terms.OnDemand | to_entries[0].value |
     .priceDimensions | to_entries[0].value |
     .pricePerUnit.USD
-'
+' | awk '{printf "%.4f\n", $1}'
