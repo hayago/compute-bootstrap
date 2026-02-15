@@ -33,6 +33,8 @@ for i in $(seq 0 $((instance_count - 1))); do
     echo "     ID: $instance_id"
     echo "     Type: $instance_type"
     echo "     IP: $public_ip"
+    price=$(bash "$(cd "$(dirname "$0")" && pwd)/get-price.sh" "$instance_type" 2>/dev/null || echo "N/A")
+    echo "     Price: \$$price/hr"
     echo "     State: $state"
     echo ""
 done

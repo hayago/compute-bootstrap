@@ -31,7 +31,8 @@ for i in $(seq 0 $((instance_count - 1))); do
     name=$(jq -r ".instances[$i].name" "$CONFIG_FILE")
     instance_type=$(jq -r ".instances[$i].instance_type" "$CONFIG_FILE")
     ami=$(jq -r ".instances[$i].ami" "$CONFIG_FILE")
-    echo "  $((i + 1)). $name (type: $instance_type, ami: $ami)"
+    price=$(bash "$SCRIPT_DIR/get-price.sh" "$instance_type" 2>/dev/null || echo "N/A")
+    echo "  $((i + 1)). $name (type: $instance_type, ami: $ami, price: \$$price/hr)"
 done
 echo ""
 
